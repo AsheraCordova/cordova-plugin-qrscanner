@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.net.Uri;
 
+import com.ashera.widget.IdGenerator;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
 import com.journeyapps.barcodescanner.BarcodeCallback;
@@ -24,7 +25,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import android.hardware.Camera;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
+//import android.support.v4.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.navigation.fragment.NavHostFragment;
+
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -60,7 +67,7 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
     private boolean oneTime = true;
     private boolean keepDenied = false;
     private boolean appPausedWithActivePreview = false;
-    
+
     static class QRScannerError {
         private static final int UNEXPECTED_ERROR = 0,
                 CAMERA_ACCESS_DENIED = 1,
@@ -463,12 +470,20 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
                 settings.setRequestedCameraId(getCurrentCameraId());
                 mBarcodeView.setCameraSettings(settings);
 
-                FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                ((ViewGroup) webView.getView().getParent()).addView(mBarcodeView, cameraPreviewParams);
+                ViewGroup.LayoutParams cameraPreviewParams = new ViewGroup.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                NavHostFragment navHostFragment = (NavHostFragment) ((AppCompatActivity) cordova.getActivity()).getSupportFragmentManager().findFragmentById(
+                        cordova.getContext().getResources().getIdentifier("nav_host_fragment", "id", cordova.getContext().getPackageName()));
+                List<Fragment> list = navHostFragment.getChildFragmentManager().getFragments();
 
+                ViewGroup view = (ViewGroup) list.get(list.size() - 1).getView();
+                ViewGroup qrCodeScanner = (ViewGroup) view.findViewById(IdGenerator.getId("@+id/qrcode_scanner"));
+                if (qrCodeScanner != null) {
+                    qrCodeScanner.addView(mBarcodeView, cameraPreviewParams);
+                } else {
+                    view.addView(mBarcodeView, cameraPreviewParams);
+                }
                 cameraPreviewing = true;
-                webView.getView().bringToFront();
-
+                //webView.getView().bringToFront();
                 mBarcodeView.resume();
             }
         });
@@ -641,7 +656,7 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
                     if(lightOn)
                         lightOn = false;
                 }
-                
+
                 if (callbackContext != null)
                     getStatus(callbackContext);
             }
@@ -659,7 +674,7 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
                     if(switchFlashOn)
                         lightOn = true;
                 }
-                
+
                 if (callbackContext != null)
                     getStatus(callbackContext);
             }
