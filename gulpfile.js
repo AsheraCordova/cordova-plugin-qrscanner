@@ -43,4 +43,4 @@ gulp.task('www', ['remap'], function () {
   .pipe(gulp.dest('www'));
 });
 
-gulp.task('default', ['dist', 'plugin', 'www']);
+gulp.task('default', ['dist', 'www']);
